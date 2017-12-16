@@ -84,7 +84,7 @@
         </fo:flow>
     </fo:page-sequence>
 
-    <fo:page-sequence master-reference="middlePage">
+    <fo:page-sequence master-reference="middlePage" initial-page-number="1">
 
         <!-- header -->
         <fo:static-content flow-name="xsl-region-before" font-size="90%">
