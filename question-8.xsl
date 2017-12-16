@@ -29,9 +29,9 @@
                             margin="1cm">
             <fo:region-body margin-top="1.6cm"
                             margin-bottom="1.6cm"
-                            background-color="#EEE"/>
+                            background-color="#FFF"/>
             <fo:region-before extent="1.5cm"/>
-            <fo:region-after extent="1.5cm"/>
+            <fo:region-after extent="1cm"/>
         </fo:simple-page-master>
 
     </fo:layout-master-set>
