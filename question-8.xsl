@@ -6,6 +6,8 @@
 
 <xsl:output method="xml"/>
 
+<xsl:param name="today"/>
+
 <xsl:template match="/regularite-tgv">
 
 <fo:root>
@@ -32,32 +34,15 @@
             <fo:region-after extent="1.5cm"/>
         </fo:simple-page-master>
 
-        <fo:simple-page-master master-name="lastPage"
-                            page-height="29.7cm"
-                            page-width="21cm"
-                            margin="1cm">
-            <fo:region-body margin-top="1.6cm"
-                            margin-bottom="1.6cm"
-                            background-color="#EEE"/>
-            <fo:region-before extent="1.5cm"/>
-            <fo:region-after extent="1.5cm"/>
-        </fo:simple-page-master>
-
-        <fo:page-sequence-master master-name="allPages">
-            <fo:repeatable-page-master-alternatives>
-                <fo:conditional-page-master-reference page-position="first" master-reference="middlePage"/>
-                <fo:conditional-page-master-reference page-position="rest" master-reference="middlePage"/>
-                <fo:conditional-page-master-reference page-position="last" master-reference="lastPage"/>
-            </fo:repeatable-page-master-alternatives>
-        </fo:page-sequence-master>
-
     </fo:layout-master-set>
 
     <fo:page-sequence master-reference="firstPage">
 
         <fo:static-content flow-name="xsl-region-after" font-size="100%">
             <fo:retrieve-marker retrieve-class-name="surFooter" retrieve-position="first-starting-within-page"/>
-            <fo:block text-align="center">16/12/2017</fo:block>
+            <fo:block text-align="center">
+                <xsl:value-of select="$today"/>
+            </fo:block>
         </fo:static-content>
 
         <fo:flow flow-name="first-body" text-align="center">
@@ -78,7 +63,7 @@
                 <fo:marker marker-class-name="surFooter">
                     <fo:block text-align="center" 
                             space-after="5cm">
-                        Cliquez les titres pour accéder à la page
+                        Cliquez sur les titres pour accéder à la page
                     </fo:block>
                 </fo:marker>
             </fo:block>
@@ -99,7 +84,7 @@
         </fo:flow>
     </fo:page-sequence>
 
-    <fo:page-sequence master-reference="allPages">
+    <fo:page-sequence master-reference="middlePage">
 
         <!-- header -->
         <fo:static-content flow-name="xsl-region-before" font-size="90%">
@@ -118,16 +103,12 @@
             <!-- special footer -->
             <fo:retrieve-marker retrieve-class-name="footer" retrieve-position="first-starting-within-page"/>
             <!-- common footer on every page -->
-            <fo:block>Date d'impression : 16/12/2017</fo:block>
+            <fo:block>Date d'impression : 
+                <xsl:value-of select="$today"/>
+            </fo:block>
         </fo:static-content>
 
         <fo:flow flow-name="xsl-region-body">
-            <fo:block>
-                <!-- sub header for the first page -->
-                <fo:marker marker-class-name="subHeader">
-                    <fo:block>LARGE SUB HEADER</fo:block>
-                </fo:marker>
-            </fo:block>
 
             <xsl:apply-templates select="axe"/>
         </fo:flow>
@@ -192,6 +173,9 @@
         </fo:table-body>
     </fo:table>
     <fo:block break-after="page"/>
+    <fo:block break-after="page" margin-left="0.5cm" margin-top="2cm">
+	<xsl:call-template name="svgdisp"/>
+    </fo:block>
     </fo:block>
     </xsl:for-each>
 </xsl:template>
@@ -211,7 +195,7 @@
                    padding="1em"
                    color="#880000">
         <fo:block padding="0.5em">
-            De <xsl:value-of select="@nom"/> à <xsl:value-of select="../@nom"/>
+            De <xsl:value-of select="../@nom"/> à <xsl:value-of select="@nom"/>
         </fo:block>
     </fo:table-cell>
   </fo:table-row>
@@ -266,6 +250,101 @@
     </xsl:for-each>
 </fo:table-body>
 </fo:table>
+</xsl:template>
+
+<!-- Building SVG -->
+<xsl:template name="svgdisp">
+
+    <fo:block      padding="1em"
+                   space-before="5cm"
+                   text-align="center"
+                   color="#880000">
+            Retards du <xsl:value-of select="../@nom"/> - <xsl:value-of select="@nom"/>
+    </fo:block>
+
+<xsl:variable name="globWidth" select="1200"/>
+<xsl:variable name="globHeight" select="700"/>
+
+<xsl:variable name="maxsatisf">
+  <xsl:for-each select="mesure">
+    <xsl:sort select="@retards" data-type="number"/>
+    <xsl:if test="position()=last()">
+        <xsl:value-of select="@retards"/>
+    </xsl:if>
+  </xsl:for-each>
+</xsl:variable>
+
+<fo:instream-foreign-object content-width="18.4cm">
+<svg id="graphic" width="{$globWidth}" height="{$globHeight}" 
+    xmlns="http://www.w3.org/2000/svg"
+    version="1.0">
+<g>
+
+    <xsl:variable name="init-x" select="30"/>
+    <xsl:variable name="init-y" select="30"/>
+    <xsl:variable name="width"  select="$globWidth - 4*$init-x"/>
+    <xsl:variable name="height" select="$globHeight - 4*$init-y"/>
+    <xsl:variable name="min-value" select="0"/>
+    <xsl:variable name="step-value" select="10"/>
+    <xsl:variable name="step-number" select="10"/>
+    <xsl:variable name="baseline"  select="$height + $init-y"/>
+
+      <!-- the diagram's box -->
+      <rect x="{ $init-x }" y="{ $init-y }"
+                width="{ $width }" height="{ $height }"
+                fill="#fff" stroke="#000" stroke-width="1px"/>
+
+    <!-- Build the X axis -->
+    <xsl:variable name="nbMes" select="count(mesure)"/>
+    <xsl:for-each select="mesure">
+   	<xsl:sort select="@annee"/>
+  	<xsl:sort select="@mois"/>
+
+      	<xsl:variable name="xpos" select="$init-x + position()*$width div $nbMes"/>
+ 	<text x="{$xpos}" y="{$baseline + 15}"
+            transform="rotate(-45 {$xpos} {$baseline + 15})"
+            font-size="10px" text-anchor="end">
+       	    <xsl:value-of select="@mois"/>-<xsl:value-of select="@annee"/>
+	</text>
+
+      	<rect x="{$xpos - 10}" y="{$baseline}" width="1" height="6" stroke="#000" fill="none"/>
+    </xsl:for-each>
+
+    <!-- Build the Y axis -->
+    <xsl:for-each select="(//node())[5 >= position()]">
+    <xsl:variable name="ypos" select="$height+$init-y - position()*$height div 5"/>
+    <text x="{$init-x - 5}" y="{$ypos + 3}"
+        font-size="15px" text-anchor="end">
+        <xsl:value-of select="substring((position()*2*$maxsatisf) div 10,1,4)"/>
+    </text>
+
+    <rect x="{$init-x}" y="{$ypos}" width="{$width}" height="1px" stroke="#888" fill="none"/>
+    </xsl:for-each>
+    <text x="{$init-x - 5}" y="{$baseline}"
+        font-size="15px" text-anchor="end">
+        0
+    </text>
+
+    <!-- Plot the line -->
+    <polyline id="plotsvg" style="fill:none; stroke:black;stroke-width:1px; background-color:white">
+        <xsl:attribute name="points">
+            <xsl:for-each select="mesure">
+   	        <xsl:sort select="@annee"/>
+  	        <xsl:sort select="@mois"/>
+                
+                <xsl:if test="@retards!=''">
+                <xsl:value-of select="$init-x -10 + position()*$width div $nbMes"/>
+                <xsl:text>,</xsl:text>
+                <xsl:value-of select="$height+$init-y - @retards*$height*(10 div ($maxsatisf)) div 10"/>
+                <xsl:text> </xsl:text>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:attribute>
+    </polyline>
+
+</g>
+</svg>
+</fo:instream-foreign-object>
 </xsl:template>
 
 </xsl:stylesheet>

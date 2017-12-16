@@ -32,25 +32,6 @@
             <fo:region-after extent="1.5cm"/>
         </fo:simple-page-master>
 
-        <fo:simple-page-master master-name="lastPage"
-                            page-height="29.7cm"
-                            page-width="21cm"
-                            margin="1cm">
-            <fo:region-body margin-top="1.6cm"
-                            margin-bottom="1.6cm"
-                            background-color="#EEE"/>
-            <fo:region-before extent="1.5cm"/>
-            <fo:region-after extent="1.5cm"/>
-        </fo:simple-page-master>
-
-        <fo:page-sequence-master master-name="allPages">
-            <fo:repeatable-page-master-alternatives>
-                <fo:conditional-page-master-reference page-position="first" master-reference="middlePage"/>
-                <fo:conditional-page-master-reference page-position="rest" master-reference="middlePage"/>
-                <fo:conditional-page-master-reference page-position="last" master-reference="lastPage"/>
-            </fo:repeatable-page-master-alternatives>
-        </fo:page-sequence-master>
-
     </fo:layout-master-set>
 
     <fo:page-sequence master-reference="firstPage">
@@ -73,16 +54,6 @@
                 </fo:marker>
             </fo:block>
             
-            <fo:block>
-                <!-- surFooter for the other first page -->
-                <fo:marker marker-class-name="surFooter">
-                    <fo:block text-align="center" 
-                            space-after="5cm">
-                        Cliquez les titres pour accéder à la page
-                    </fo:block>
-                </fo:marker>
-            </fo:block>
-
             <fo:block space-after="1cm">
                 <fo:external-graphic src="url(LogoECL.png)" content-width="12cm"/>
             </fo:block>
@@ -95,40 +66,12 @@
                         space-before="2em">
                 BE XSL-FO
             </fo:block>
-		<xsl:call-template name="genTOC"/>
         </fo:flow>
     </fo:page-sequence>
 
-    <fo:page-sequence master-reference="allPages">
-
-        <!-- header -->
-        <fo:static-content flow-name="xsl-region-before" font-size="90%">
-            <!-- main header on every page -->
-            <fo:block   border-bottom="0.5pt solid black"
-                        text-align-last="justify">
-                Statistiques des trains 
-                <fo:leader leader-pattern="space"/><fo:page-number/>
-            </fo:block>
-            <!-- sub header -->
-            <fo:retrieve-marker retrieve-class-name="subHeader" retrieve-position="first-starting-within-page"/>
-        </fo:static-content>
-
-        <!-- footer -->
-        <fo:static-content flow-name="xsl-region-after" font-size="90%">
-            <!-- special footer -->
-            <fo:retrieve-marker retrieve-class-name="footer" retrieve-position="first-starting-within-page"/>
-            <!-- common footer on every page -->
-            <fo:block>Date d'impression : 16/12/2017</fo:block>
-        </fo:static-content>
+    <fo:page-sequence master-reference="middlePage">
 
         <fo:flow flow-name="xsl-region-body">
-            <fo:block>
-                <!-- sub header for the first page -->
-                <fo:marker marker-class-name="subHeader">
-                    <fo:block>LARGE SUB HEADER</fo:block>
-                </fo:marker>
-            </fo:block>
-
             <xsl:apply-templates select="axe"/>
         </fo:flow>
     </fo:page-sequence>
@@ -136,36 +79,8 @@
 
 </xsl:template>
 
-<!-- Building Table of Contents -->
-<xsl:template name="genTOC">
-  <fo:block break-before='page'>
-    <fo:block font-size="16pt" font-weight="bold" space-after="2em">
-	TABLE OF CONTENTS
-    </fo:block>
-    <xsl:for-each select="//axe">
-      <fo:block text-align-last="justify" space-after="1em">
-        <fo:basic-link internal-destination="{generate-id(.)}">
-          <xsl:text> Axe </xsl:text>
-          <xsl:value-of select="@nom"/> 
-          <xsl:text>  </xsl:text>
-          <fo:leader leader-pattern="dots" leader-pattern-width="0.2cm"/>
-          <fo:page-number-citation ref-id="{generate-id(.)}" />
-        </fo:basic-link>
-      </fo:block>
-    </xsl:for-each>
-  </fo:block>
-</xsl:template>
-
 <!-- Building table layout -->
 <xsl:template match="axe">
-            <fo:block id="{generate-id(.)}">
-                <!-- sub header for the not-first pages -->
-                <fo:marker marker-class-name="subHeader">
-                    <fo:block space-before="0.3em">
-        		Axe <xsl:value-of select="@nom"/>
-		    </fo:block>
-                </fo:marker>
-            </fo:block>
     <fo:block
         text-indent="2em"
         font-size="1.2em"
