@@ -74,7 +74,7 @@
             <fo:block   font-size="3em"
                         padding-bottom="1em"
                         border-bottom="0.5pt solid black">
-                Statistiques des trains 
+                Régularité mensuelle du TGV 
             </fo:block>
             <fo:block   font-size="2em"
                         space-before="2em">
@@ -91,7 +91,7 @@
             <!-- main header on every page -->
             <fo:block   border-bottom="0.5pt solid black"
                         text-align-last="justify">
-                Statistiques des trains 
+                Régularité mensuelle du TGV 
                 <fo:leader leader-pattern="space"/><fo:page-number/>
             </fo:block>
             <!-- sub header -->
@@ -121,7 +121,7 @@
 <xsl:template name="genTOC">
   <fo:block break-before='page'>
     <fo:block font-size="16pt" font-weight="bold" space-after="2em">
-	TABLE OF CONTENTS
+	TABLE DES MATIÈRES
     </fo:block>
     <xsl:for-each select="//axe">
       <fo:block text-align-last="justify" space-after="1em">
